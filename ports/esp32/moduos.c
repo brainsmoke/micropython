@@ -37,11 +37,20 @@
 #include "py/mphal.h"
 #include "extmod/misc.h"
 #include "extmod/vfs.h"
+#if MICROPY_VFS_FAT
 #include "extmod/vfs_fat.h"
+#endif
+#if MICROPY_VFS_LFS1 || MICROPY_VFS_LFS2
 #include "extmod/vfs_lfs.h"
+#endif
+#if MICROPY_VFS_POSIX
+#include "extmod/vfs_posix.h"
+#endif
 #include "genhdr/mpversion.h"
 
+#if MICROPY_VFS_FAT
 extern const mp_obj_type_t mp_fat_vfs_type;
+#endif
 
 STATIC const qstr os_uname_info_fields[] = {
     MP_QSTR_sysname, MP_QSTR_nodename,
@@ -129,6 +138,9 @@ STATIC const mp_rom_map_elem_t os_module_globals_table[] = {
     #endif
     #if MICROPY_VFS_LFS2
     { MP_ROM_QSTR(MP_QSTR_VfsLfs2), MP_ROM_PTR(&mp_type_vfs_lfs2) },
+    #endif
+    #if MICROPY_VFS_POSIX
+    { MP_ROM_QSTR(MP_QSTR_VfsPosix), MP_ROM_PTR(&mp_type_vfs_posix) },
     #endif
     #endif
 };

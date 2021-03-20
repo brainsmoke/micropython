@@ -29,7 +29,7 @@
 #include "py/runtime.h"
 #include "py/mphal.h"
 #include "py/mperrno.h"
-#include "extmod/vfs_fat.h"
+#include "extmod/vfs.h"
 
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
