@@ -10,15 +10,15 @@ set(MICROPY_QSTRDEFS_PORT
 )
 
 set(MICROPY_SOURCE_LIB
-    ${MICROPY_DIR}/lib/littlefs/lfs1.c
-    ${MICROPY_DIR}/lib/littlefs/lfs1_util.c
-    ${MICROPY_DIR}/lib/littlefs/lfs2.c
-    ${MICROPY_DIR}/lib/littlefs/lfs2_util.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs1.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs1_util.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs2.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs2_util.c
     ${MICROPY_DIR}/lib/mbedtls_errors/mp_mbedtls_errors.c
     ${MICROPY_DIR}/lib/mp-readline/readline.c
     ${MICROPY_DIR}/lib/netutils/netutils.c
-    ${MICROPY_DIR}/lib/oofatfs/ff.c
-    ${MICROPY_DIR}/lib/oofatfs/ffunicode.c
+#    ${MICROPY_DIR}/lib/oofatfs/ff.c
+#    ${MICROPY_DIR}/lib/oofatfs/ffunicode.c
     ${MICROPY_DIR}/lib/timeutils/timeutils.c
     ${MICROPY_DIR}/lib/utils/interrupt_char.c
     ${MICROPY_DIR}/lib/utils/stdout_helpers.c
@@ -36,7 +36,7 @@ set(MICROPY_SOURCE_PORT
     ${PROJECT_DIR}/uart.c
     ${PROJECT_DIR}/gccollect.c
     ${PROJECT_DIR}/mphalport.c
-    ${PROJECT_DIR}/fatfs_port.c
+#    ${PROJECT_DIR}/fatfs_port.c
     ${PROJECT_DIR}/help.c
     ${PROJECT_DIR}/modutime.c
     ${PROJECT_DIR}/moduos.c
@@ -102,6 +102,8 @@ set(IDF_COMPONENTS
     ulp
     vfs
     xtensa
+    fatfs
+    wear_levelling
 )
 
 if(IDF_VERSION_MINOR GREATER_EQUAL 1)
@@ -145,11 +147,17 @@ set(MICROPY_CROSS_FLAGS -march=xtensawin)
 # Set compile options for this port.
 target_compile_definitions(${MICROPY_TARGET} PUBLIC
     MICROPY_ESP_IDF_4=1
-    MICROPY_VFS_FAT=1
-    MICROPY_VFS_LFS2=1
-    FFCONF_H=\"${MICROPY_OOFATFS_DIR}/ffconf.h\"
-    LFS1_NO_MALLOC LFS1_NO_DEBUG LFS1_NO_WARN LFS1_NO_ERROR LFS1_NO_ASSERT
-    LFS2_NO_MALLOC LFS2_NO_DEBUG LFS2_NO_WARN LFS2_NO_ERROR LFS2_NO_ASSERT
+#    MICROPY_VFS_FAT=1
+#    MICROPY_VFS_LFS2=1
+    MICROPY_VFS_POSIX=1
+    MICROPY_VFS_POSIX_FILE=1
+    MICROPY_VFS_POSIX_SOFT_CWD=1
+    MICROPY_VFS_POSIX_NO_STATFS=1
+	MICROPY_VFS_POSIX_NATIVE_MOUNT=1
+
+#    FFCONF_H=\"${MICROPY_OOFATFS_DIR}/ffconf.h\"
+#    LFS1_NO_MALLOC LFS1_NO_DEBUG LFS1_NO_WARN LFS1_NO_ERROR LFS1_NO_ASSERT
+#    LFS2_NO_MALLOC LFS2_NO_DEBUG LFS2_NO_WARN LFS2_NO_ERROR LFS2_NO_ASSERT
 )
 
 # Disable some warnings to keep the build output clean.
@@ -184,6 +192,9 @@ if(IDF_VERSION_MINOR GREATER_EQUAL 2)
     # so add them explicitly.
     list(APPEND MICROPY_CPP_INC_EXTRA ${IDF_PATH}/components/soc/soc/${IDF_TARGET}/include)
     list(APPEND MICROPY_CPP_INC_EXTRA ${IDF_PATH}/components/soc/soc/include)
+#    list(APPEND MICROPY_CPP_INC_EXTRA ${IDF_PATH}/components/fatfs/vfs)
+#    list(APPEND MICROPY_CPP_INC_EXTRA ${IDF_PATH}/components/fatfs/src)
+#    list(APPEND MICROPY_CPP_INC_EXTRA ${IDF_PATH}/components/wear_levelling/include)
 endif()
 
 # Include the main MicroPython cmake rules.
