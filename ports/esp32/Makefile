@@ -18,7 +18,7 @@ GIT_SUBMODULES = lib/berkeley-db-1.xx
 
 .PHONY: all clean deploy erase submodules FORCE
 
-IDFPY_FLAGS += -D MICROPY_BOARD=$(BOARD) -B $(BUILD)
+IDFPY_FLAGS += -D MICROPY_BOARD=$(BOARD) -B $(BUILD) $(EXTRA_IDFPY_FLAGS)
 
 all:
 	idf.py $(IDFPY_FLAGS) build

@@ -75,6 +75,28 @@ set(MICROPY_SOURCE_QSTR
     ${MICROPY_SOURCE_PORT}
 )
 
+if (USER_MODULES)
+
+    foreach(user_module ${USER_MODULES})
+
+        set(MODULE_DIR ${user_module})
+
+        include(${user_module}/micropython.cmake)
+
+    endforeach()
+
+    get_property(MICROPY_MODULE_SRCS GLOBAL PROPERTY MICROPY_MODULE_SRCS)
+    get_property(MICROPY_MODULE_DEFS GLOBAL PROPERTY MICROPY_MODULE_DEFS)
+
+    message(STATUS "MICROPY_MODULE_SRCS=${MICROPY_MODULE_SRCS}")
+    message(STATUS "MICROPY_MODULE_DEFS=${MICROPY_MODULE_DEFS}")
+
+    list(APPEND MICROPY_SOURCE_QSTR ${MICROPY_MODULE_SRCS})
+
+    message(STATUS "MICROPY_SOURCE_QSTR=${MICROPY_SOURCE_QSTR}")
+
+endif()
+
 set(IDF_COMPONENTS
     app_update
     bootloader_support
@@ -129,11 +151,13 @@ idf_component_register(
         ${MICROPY_SOURCE_LIB}
         ${MICROPY_SOURCE_DRIVERS}
         ${MICROPY_SOURCE_PORT}
+        ${MICROPY_MODULE_SRCS}
     INCLUDE_DIRS
         ${MICROPY_DIR}
         ${MICROPY_PORT_DIR}
         ${MICROPY_BOARD_DIR}
         ${CMAKE_BINARY_DIR}
+        ${MICROPY_MODULE_INCLUDES}
     REQUIRES
         ${IDF_COMPONENTS}
 )
@@ -158,6 +182,7 @@ target_compile_definitions(${MICROPY_TARGET} PUBLIC
 #    FFCONF_H=\"${MICROPY_OOFATFS_DIR}/ffconf.h\"
 #    LFS1_NO_MALLOC LFS1_NO_DEBUG LFS1_NO_WARN LFS1_NO_ERROR LFS1_NO_ASSERT
 #    LFS2_NO_MALLOC LFS2_NO_DEBUG LFS2_NO_WARN LFS2_NO_ERROR LFS2_NO_ASSERT
+    ${MICROPY_MODULE_DEFS}
 )
 
 # Disable some warnings to keep the build output clean.
@@ -165,6 +190,7 @@ target_compile_options(${MICROPY_TARGET} PUBLIC
     -Wno-clobbered
     -Wno-deprecated-declarations
     -Wno-missing-field-initializers
+    ${MICROPY_MODULE_INC}
 )
 
 # Collect all of the include directories and compile definitions for the IDF components.
