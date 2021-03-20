@@ -45,12 +45,18 @@ typedef struct _mp_obj_vfs_posix_t {
     vstr_t root;
     size_t root_len;
     bool readonly;
+#if MICROPY_VFS_POSIX_SOFT_CWD
+    vstr_t cwd;
+#endif
 #if MICROPY_VFS_POSIX_NATIVE_MOUNT
     mp_obj_t dev;
 #endif
 } mp_obj_vfs_posix_t;
 
 STATIC const char *vfs_posix_get_path_str(mp_obj_vfs_posix_t *self, mp_obj_t path) {
+#if MICROPY_VFS_POSIX_SOFT_CWD
+// XXX: Doesn't work for relative paths, can't see how it ever worked for relative paths when root is set.
+#endif
     if (self->root_len == 0) {
         return mp_obj_str_get_str(path);
     } else {
@@ -113,6 +119,10 @@ STATIC mp_obj_t vfs_posix_make_new(const mp_obj_type_t *type, size_t n_args, siz
              vstr_add_char(&vfs->root, '/');
     }
     vfs->root_len = vfs->root.len;
+#if MICROPY_VFS_POSIX_SOFT_CWD
+    vstr_init(&vfs->cwd, 0);
+    vstr_add_char(&vfs->cwd, '/');
+#endif
     vfs->readonly = false;
 #if MICROPY_VFS_POSIX_NATIVE_MOUNT
     vfs->dev = (n_args == 2) ? args[1] : mp_const_none;
@@ -165,18 +175,31 @@ STATIC mp_obj_t vfs_posix_open(mp_obj_t self_in, mp_obj_t path_in, mp_obj_t mode
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(vfs_posix_open_obj, vfs_posix_open);
 
 STATIC mp_obj_t vfs_posix_chdir(mp_obj_t self_in, mp_obj_t path_in) {
+#if MICROPY_VFS_POSIX_SOFT_CWD
+    mp_obj_vfs_posix_t *self = MP_OBJ_TO_PTR(self_in);
+// TODO XXX fix path traversal, which seems to be broken in other places as well
+    const char *path = mp_obj_str_get_str(path_in);
+	self->cwd.len = 0;
+    vstr_add_str(&self->cwd, path);
+    return mp_const_none;
+#else
     return vfs_posix_fun1_helper(self_in, path_in, chdir);
+#endif
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(vfs_posix_chdir_obj, vfs_posix_chdir);
 
 STATIC mp_obj_t vfs_posix_getcwd(mp_obj_t self_in) {
     mp_obj_vfs_posix_t *self = MP_OBJ_TO_PTR(self_in);
+#if MICROPY_VFS_POSIX_SOFT_CWD
+    const char *ret = self->cwd.buf;
+#else
     char buf[MICROPY_ALLOC_PATH_MAX + 1];
     const char *ret = getcwd(buf, sizeof(buf));
     if (ret == NULL) {
         mp_raise_OSError(errno);
     }
     ret += self->root_len;
+#endif
     return mp_obj_new_str(ret, strlen(ret));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(vfs_posix_getcwd_obj, vfs_posix_getcwd);
