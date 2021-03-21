@@ -1,6 +1,9 @@
 #!/bin/bash
-ESPIDFDIR="../../../esp-idf"
-LEDDRIVERDIR="../../../esp32leddriver"
+
+BUILDDIR="$HOME"
+
+ESPIDFDIR="$BUILDDIR/esp-idf"
+LEDDRIVERDIR="$BUILDDIR/esp32leddriver"
 
 source "$ESPIDFDIR"/export.sh
 
