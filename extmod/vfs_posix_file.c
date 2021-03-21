@@ -149,7 +149,7 @@ STATIC mp_uint_t vfs_posix_file_write(mp_obj_t o_in, const void *buf, mp_uint_t 
     check_fd_is_open(o);
     #if MICROPY_PY_OS_DUPTERM
     if (o->fd <= STDERR_FILENO) {
-        mp_hal_stdout_tx_strn(buf, size);
+        MP_PLAT_PRINT_STRN(buf, size);
         return size;
     }
     #endif
