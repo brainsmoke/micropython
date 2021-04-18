@@ -559,7 +559,7 @@ void mp_vfs_umount_all(void) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         while ( MP_STATE_VM(vfs_mount_table) != NULL) {
-            mp_vfs_umount(MP_STATE_VM(vfs_mount_table));
+            mp_vfs_umount(MP_STATE_VM(vfs_mount_table)->obj);
         }
         nlr_pop();
     }
