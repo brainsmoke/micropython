@@ -83,10 +83,16 @@ mp_obj_t mp_native_mount(mp_obj_t dev, mp_obj_t mount_point, mp_obj_t readonly, 
         .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
     };
 
+
+	ESP_LOGD( "mp_native_mount", "esp_vfs_fat_spiflash_mount(\"%s\", \"%s\", { .format_if_mount_failed = %d, .max_files = %d, allocation_unit_size = %d } , &bdev->wl_handle);", path, bdev->part->label, config.format_if_mount_failed, config.max_files, config.allocation_unit_size);
     esp_err_t err = esp_vfs_fat_spiflash_mount(path, bdev->part->label, &config, &bdev->wl_handle);
+	ESP_LOGD( "mp_native_mount", "err = %d %s, bdev->wl_handle = %d)", err, err==ESP_OK?"(ESP_OK)":"(!ESP_OK)", bdev->wl_handle);
 
     if ( (err != ESP_OK) && (bdev->wl_handle != WL_INVALID_HANDLE) )
+	{
+		ESP_LOGD( "mp_native_mount", " wl_unmount(bdev->wl_handle = %d)", bdev->wl_handle);
         wl_unmount(bdev->wl_handle);
+	}
 
     check_esp_err(err);
 
@@ -107,7 +113,9 @@ mp_obj_t mp_native_umount(mp_obj_t dev, mp_obj_t mount_point) {
         if (path[0] == '/' && path[1] == '\0')
             path = &horrible_hack[1];
 
+		ESP_LOGD( "mp_native_mount", "esp_vfs_fat_spiflash_unmount(\"%s\", \"%d\");", path, bdev->wl_handle);
         check_esp_err(esp_vfs_fat_spiflash_unmount(path, bdev->wl_handle));
+		ESP_LOGD( "mp_native_mount", "(success)");
 	}
 
 	return mp_const_none;
