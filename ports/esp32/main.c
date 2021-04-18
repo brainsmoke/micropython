@@ -183,9 +183,9 @@ void nlr_jump_fail(void *val) {
 }
 
 // modussl_mbedtls uses this function but it's not enabled in ESP IDF
-void mbedtls_debug_set_threshold(int threshold) {
-    (void)threshold;
-}
+//void mbedtls_debug_set_threshold(int threshold) {
+//    (void)threshold;
+//}
 
 void *esp_native_code_commit(void *buf, size_t len, void *reloc) {
     len = (len + 3) & ~3;

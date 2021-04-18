@@ -126,6 +126,9 @@ set(IDF_COMPONENTS
     xtensa
     fatfs
     wear_levelling
+    esp_http_server
+    esp_https_server
+    nghttp
 )
 
 if(IDF_VERSION_MINOR GREATER_EQUAL 1)
