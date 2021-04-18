@@ -138,7 +138,6 @@ STATIC mp_obj_t vfs_posix_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t mk
     }
 #if MICROPY_VFS_POSIX_NATIVE_MOUNT
     return mp_native_mount(self->dev, mp_obj_new_str_copy(&mp_type_bytes, (byte*)self->root.buf, self->root_len-1), readonly, mkfs);
-                                   // ^- I guess releasing the GIL inside mp_native_mount would allow for a use after GC(?)
 #else
     if (mp_obj_is_true(mkfs)) {
         mp_raise_OSError(MP_EPERM);
@@ -152,7 +151,6 @@ STATIC mp_obj_t vfs_posix_umount(mp_obj_t self_in) {
 #if MICROPY_VFS_POSIX_NATIVE_MOUNT
     mp_obj_vfs_posix_t *self = MP_OBJ_TO_PTR(self_in);
     return mp_native_umount(self->dev, mp_obj_new_str_copy(&mp_type_bytes, (byte*)self->root.buf, self->root_len-1));
-                                    // ^- I guess releasing the GIL inside mp_native_umount would allow for a use after GC(?)
 #else
     (void)self_in;
     return mp_const_none;
