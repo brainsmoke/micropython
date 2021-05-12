@@ -154,6 +154,11 @@ soft_reset_exit:
 
     machine_timer_deinit_all();
 
+#if MODULE_UARTPIXEL_ENABLED
+void uartpixel_deinit(void);
+	uartpixel_deinit();
+#endif
+
     #if MICROPY_PY_THREAD
     mp_thread_deinit();
     #endif
