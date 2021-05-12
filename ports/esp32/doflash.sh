@@ -9,4 +9,4 @@ source "$ESPIDFDIR"/export.sh
 
 screen -X -S micropython quit
 
-make EXTRA_IDFPY_FLAGS="-DUSER_MODULES=\"$LEDDRIVERDIR/firmware/esp32/modules/cball;$LEDDRIVERDIR/firmware/esp32/modules/esphttpd\"" BOARD=LEDBALL deploy
+make EXTRA_IDFPY_FLAGS="-DUSER_MODULES=\"$LEDDRIVERDIR/firmware/esp32/modules/cball;$LEDDRIVERDIR/firmware/esp32/modules/esphttpd;$LEDDRIVERDIR/firmware/esp32/modules/uartpixel\"" BOARD=LEDBALL deploy
