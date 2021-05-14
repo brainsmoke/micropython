@@ -1,10 +1,5 @@
 #!/bin/bash
 
-BUILDDIR="$HOME"
+. "$(dirname "$0")/setenv.sh"
 
-ESPIDFDIR="$BUILDDIR/esp-idf"
-LEDDRIVERDIR="$BUILDDIR/esp32leddriver"
-
-source "$ESPIDFDIR"/export.sh
-
-make EXTRA_IDFPY_FLAGS="-DUSER_MODULES=\"$LEDDRIVERDIR/firmware/esp32/modules/cball;$LEDDRIVERDIR/firmware/esp32/modules/esphttpd;$LEDDRIVERDIR/firmware/esp32/modules/uartpixel\"" BOARD=LEDBALL erase
+make "EXTRA_IDFPY_FLAGS=-DUSER_MODULES=$USER_MODULES" "BOARD=$BOARD" erase

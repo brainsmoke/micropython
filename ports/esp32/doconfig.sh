@@ -1,12 +1,7 @@
 #!/bin/bash
 
-BUILDDIR="$HOME"
-
-ESPIDFDIR="$BUILDDIR/esp-idf"
-LEDDRIVERDIR="$BUILDDIR/esp32leddriver"
-
-source "$ESPIDFDIR"/export.sh
+. "$(dirname "$0")/setenv.sh"
 
 unset LC_NAME
-cd "build-LEDBALL"
+cd "build-$BOARD"
 make menuconfig
