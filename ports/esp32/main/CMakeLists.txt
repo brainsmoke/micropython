@@ -30,13 +30,13 @@ set(MICROPY_SOURCE_SHARED
 )
 
 set(MICROPY_SOURCE_LIB
-    ${MICROPY_DIR}/lib/littlefs/lfs1.c
-    ${MICROPY_DIR}/lib/littlefs/lfs1_util.c
-    ${MICROPY_DIR}/lib/littlefs/lfs2.c
-    ${MICROPY_DIR}/lib/littlefs/lfs2_util.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs1.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs1_util.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs2.c
+#    ${MICROPY_DIR}/lib/littlefs/lfs2_util.c
     ${MICROPY_DIR}/lib/mbedtls_errors/mp_mbedtls_errors.c
-    ${MICROPY_DIR}/lib/oofatfs/ff.c
-    ${MICROPY_DIR}/lib/oofatfs/ffunicode.c
+#    ${MICROPY_DIR}/lib/oofatfs/ff.c
+#    ${MICROPY_DIR}/lib/oofatfs/ffunicode.c
 )
 if(IDF_TARGET STREQUAL "esp32c3")
     list(APPEND MICROPY_SOURCE_LIB ${MICROPY_DIR}/shared/runtime/gchelper_generic.c)
@@ -54,7 +54,7 @@ set(MICROPY_SOURCE_PORT
     ${PROJECT_DIR}/usb_serial_jtag.c
     ${PROJECT_DIR}/gccollect.c
     ${PROJECT_DIR}/mphalport.c
-    ${PROJECT_DIR}/fatfs_port.c
+#    ${PROJECT_DIR}/fatfs_port.c
     ${PROJECT_DIR}/help.c
     ${PROJECT_DIR}/modutime.c
     ${PROJECT_DIR}/machine_bitstream.c
@@ -124,6 +124,8 @@ set(IDF_COMPONENTS
     ulp
     vfs
     xtensa
+    fatfs
+    wear_levelling
 )
 
 if(IDF_VERSION_MINOR GREATER_EQUAL 1 OR IDF_VERSION_MAJOR GREATER_EQUAL 5)
@@ -184,11 +186,14 @@ set(MICROPY_CROSS_FLAGS -march=xtensawin)
 target_compile_definitions(${MICROPY_TARGET} PUBLIC
     ${MICROPY_DEF_CORE}
     MICROPY_ESP_IDF_4=1
-    MICROPY_VFS_FAT=1
-    MICROPY_VFS_LFS2=1
-    FFCONF_H=\"${MICROPY_OOFATFS_DIR}/ffconf.h\"
-    LFS1_NO_MALLOC LFS1_NO_DEBUG LFS1_NO_WARN LFS1_NO_ERROR LFS1_NO_ASSERT
-    LFS2_NO_MALLOC LFS2_NO_DEBUG LFS2_NO_WARN LFS2_NO_ERROR LFS2_NO_ASSERT
+#    MICROPY_VFS_FAT=1
+#    MICROPY_VFS_LFS2=1
+    MICROPY_VFS_POSIX=1
+    MICROPY_VFS_POSIX_NATIVE_MOUNT=1
+
+#    FFCONF_H=\"${MICROPY_OOFATFS_DIR}/ffconf.h\"
+#    LFS1_NO_MALLOC LFS1_NO_DEBUG LFS1_NO_WARN LFS1_NO_ERROR LFS1_NO_ASSERT
+#    LFS2_NO_MALLOC LFS2_NO_DEBUG LFS2_NO_WARN LFS2_NO_ERROR LFS2_NO_ASSERT
 )
 
 # Disable some warnings to keep the build output clean.

@@ -159,7 +159,7 @@ mp_import_stat_t mp_vfs_import_stat(const char *path) {
     }
 }
 
-STATIC mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj) {
+STATIC mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj, mp_obj_t mount_point) {
     #if MICROPY_VFS_LFS1 || MICROPY_VFS_LFS2
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
@@ -184,6 +184,12 @@ STATIC mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj) {
                 mp_obj_t vfs = MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_lfs2, make_new)(&mp_type_vfs_lfs2, 1, 0, &bdev_obj);
                 nlr_pop();
                 return vfs;
+            }
+            #endif
+            #if MICROPY_VFS_POSIX_NATIVE_MOUNT
+            {
+                mp_obj_t args[2] = { mount_point, bdev_obj };
+                return mp_type_vfs_posix.make_new(&mp_type_vfs_posix, 2, 0, args);
             }
             #endif
         }
@@ -223,7 +229,7 @@ mp_obj_t mp_vfs_mount(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args
     if (dest[0] == MP_OBJ_NULL) {
         // Input object has no mount method, assume it's a block device and try to
         // auto-detect the filesystem and create the corresponding VFS entity.
-        vfs_obj = mp_vfs_autodetect(vfs_obj);
+        vfs_obj = mp_vfs_autodetect(vfs_obj, pos_args[1]);
     }
 
     // create new object
@@ -546,6 +552,18 @@ int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point) {
         }
     }
     return ret;
+}
+
+// This is a C-level helper function
+void mp_vfs_umount_all(void) {
+
+    nlr_buf_t nlr;
+    if (nlr_push(&nlr) == 0) {
+        while ( MP_STATE_VM(vfs_mount_table) != NULL) {
+            mp_vfs_umount(MP_STATE_VM(vfs_mount_table)->obj);
+        }
+        nlr_pop();
+    }
 }
 
 MP_REGISTER_ROOT_POINTER(struct _mp_vfs_mount_t *vfs_cur);

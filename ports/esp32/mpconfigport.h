@@ -88,6 +88,7 @@
 #define MICROPY_PY_UOS_DUPTERM_NOTIFY       (1)
 #define MICROPY_PY_UOS_UNAME                (1)
 #define MICROPY_PY_UOS_URANDOM              (1)
+#define MICROPY_PY_UOS_STATVFS              (0)
 #define MICROPY_PY_MACHINE                  (1)
 #define MICROPY_PY_MACHINE_PIN_MAKE_NEW     mp_pin_make_new
 #define MICROPY_PY_MACHINE_BITSTREAM        (1)

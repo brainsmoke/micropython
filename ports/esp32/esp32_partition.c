@@ -33,6 +33,11 @@
 #include "modesp32.h"
 #include "esp_ota_ops.h"
 
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+#include "esp_vfs_fat.h"
+#define MAX_OPEN_FILES 8
+#endif
+
 // esp_partition_read and esp_partition_write can operate on arbitrary bytes
 // but esp_partition_erase_range operates on 4k blocks.  The default block size
 // for a Partition object is therefore 4k, to make writes efficient, and also
@@ -51,6 +56,9 @@ typedef struct _esp32_partition_obj_t {
     const esp_partition_t *part;
     uint8_t *cache;
     uint16_t block_size;
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    wl_handle_t wl_handle;
+#endif
 } esp32_partition_obj_t;
 
 STATIC esp32_partition_obj_t *esp32_partition_new(const esp_partition_t *part, uint16_t block_size) {
@@ -65,6 +73,9 @@ STATIC esp32_partition_obj_t *esp32_partition_new(const esp_partition_t *part, u
     } else {
         self->cache = NULL;
     }
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    self->wl_handle = WL_INVALID_HANDLE;
+#endif
     return self;
 }
 
@@ -292,3 +303,73 @@ MP_DEFINE_CONST_OBJ_TYPE(
     print, esp32_partition_print,
     locals_dict, &esp32_partition_locals_dict
     );
+
+
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+mp_obj_t mp_native_mount(mp_obj_t dev, mp_obj_t mount_point, mp_obj_t readonly, mp_obj_t mkfs) {
+
+    if (dev == mp_const_none)
+        return mp_const_none;
+
+    if (!mp_obj_is_type(dev, &esp32_partition_type))
+        mp_raise_OSError(MP_ENODEV);
+
+    esp32_partition_obj_t *bdev = MP_OBJ_TO_PTR(dev);
+
+    const char *path = mp_obj_str_get_str(mount_point);
+
+    /* workaround for:
+     * esp-idf/components/vfs/vfs.c:81                   v-- buffer underrun in case of ""
+     * if ((len > 0 && base_path[0] != '/') || base_path[len - 1] == '/')
+     *
+     * fixed upstream, but possibly not in all micropython supported versions
+     */
+    const char *horrible_hack = "x\0";
+    if (path[0] == '/' && path[1] == '\0')
+        path = &horrible_hack[1];
+
+    esp_vfs_fat_mount_config_t config = {
+        .format_if_mount_failed = mp_obj_is_true(mkfs),
+        .max_files = MAX_OPEN_FILES,
+        .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
+    };
+
+
+    ESP_LOGD( __func__ , "esp_vfs_fat_spiflash_mount(\"%s\", \"%s\", { .format_if_mount_failed = %d, .max_files = %d, allocation_unit_size = %d } , &bdev->wl_handle);", path, bdev->part->label, config.format_if_mount_failed, config.max_files, config.allocation_unit_size);
+    esp_err_t err = esp_vfs_fat_spiflash_mount(path, bdev->part->label, &config, &bdev->wl_handle);
+    ESP_LOGD( "mp_native_mount", "err = %d %s, bdev->wl_handle = %d)", err, err==ESP_OK?"(ESP_OK)":"(!ESP_OK)", bdev->wl_handle);
+
+    if ( (err != ESP_OK) && (bdev->wl_handle != WL_INVALID_HANDLE) )
+    {
+        ESP_LOGD( "mp_native_mount", " wl_unmount(bdev->wl_handle = %d)", bdev->wl_handle);
+        wl_unmount(bdev->wl_handle);
+    }
+
+    check_esp_err(err);
+
+    return mp_const_none;
+}
+
+mp_obj_t mp_native_umount(mp_obj_t dev, mp_obj_t mount_point) {
+
+    if (dev != mp_const_none)
+    {
+        if (!mp_obj_is_type(dev, &esp32_partition_type))
+            mp_raise_OSError(MP_ENODEV);
+
+        esp32_partition_obj_t *bdev = MP_OBJ_TO_PTR(dev);
+
+        const char *path = mp_obj_str_get_str(mount_point);
+        const char *horrible_hack = "x\0";
+        if (path[0] == '/' && path[1] == '\0')
+            path = &horrible_hack[1];
+
+        ESP_LOGD( "mp_native_mount", "esp_vfs_fat_spiflash_unmount(\"%s\", \"%d\");", path, bdev->wl_handle);
+        check_esp_err(esp_vfs_fat_spiflash_unmount(path, bdev->wl_handle));
+        ESP_LOGD( "mp_native_mount", "(success)");
+    }
+
+    return mp_const_none;
+}
+
+#endif

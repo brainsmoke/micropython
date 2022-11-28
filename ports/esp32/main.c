@@ -63,6 +63,8 @@
 #include "modnetwork.h"
 #include "mpthreadport.h"
 
+#include "extmod/vfs.h"
+
 #if MICROPY_BLUETOOTH_NIMBLE
 #include "extmod/modbluetooth.h"
 #endif
@@ -217,6 +219,7 @@ soft_reset_exit:
     machine_deinit();
     usocket_events_deinit();
 
+	mp_vfs_umount_all();
     mp_deinit();
     fflush(stdout);
     goto soft_reset;
@@ -245,6 +248,7 @@ void nlr_jump_fail(void *val) {
 }
 
 // modussl_mbedtls uses this function but it's not enabled in ESP IDF
+void mbedtls_debug_set_threshold(int threshold) __attribute__((weak));
 void mbedtls_debug_set_threshold(int threshold) {
     (void)threshold;
 }

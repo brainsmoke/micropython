@@ -28,6 +28,7 @@
 #include "py/mperrno.h"
 #include "py/mphal.h"
 #include "py/mpthread.h"
+#include "py/objstr.h"
 #include "extmod/vfs.h"
 #include "extmod/vfs_posix.h"
 
@@ -52,6 +53,10 @@ typedef struct _mp_obj_vfs_posix_t {
     vstr_t root;
     size_t root_len;
     bool readonly;
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    mp_obj_t dev;
+#endif
+
 } mp_obj_vfs_posix_t;
 
 STATIC const char *vfs_posix_get_path_str(mp_obj_vfs_posix_t *self, mp_obj_t path) {
@@ -102,17 +107,24 @@ STATIC mp_import_stat_t mp_vfs_posix_import_stat(void *self_in, const char *path
 }
 
 STATIC mp_obj_t vfs_posix_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    mp_arg_check_num(n_args, n_kw, 0, 2, false);
+#else
     mp_arg_check_num(n_args, n_kw, 0, 1, false);
+#endif
 
     mp_obj_vfs_posix_t *vfs = mp_obj_malloc(mp_obj_vfs_posix_t, type);
     vstr_init(&vfs->root, 0);
-    if (n_args == 1) {
+    if (n_args >= 1) {
         vstr_add_str(&vfs->root, mp_obj_str_get_str(args[0]));
-        vstr_add_char(&vfs->root, '/');
+        if ( (vfs->root.len == 0) || (vfs->root.buf[vfs->root.len-1] != '/' ) )
+            vstr_add_char(&vfs->root, '/');
     }
     vfs->root_len = vfs->root.len;
     vfs->readonly = false;
-
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    vfs->dev = (n_args == 2) ? args[1] : mp_const_none;
+#endif
     return MP_OBJ_FROM_PTR(vfs);
 }
 
@@ -121,16 +133,25 @@ STATIC mp_obj_t vfs_posix_mount(mp_obj_t self_in, mp_obj_t readonly, mp_obj_t mk
     if (mp_obj_is_true(readonly)) {
         self->readonly = true;
     }
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    return mp_native_mount(self->dev, mp_obj_new_str_copy(&mp_type_bytes, (byte*)self->root.buf, self->root_len-1), readonly, mkfs);
+#else
     if (mp_obj_is_true(mkfs)) {
         mp_raise_OSError(MP_EPERM);
     }
     return mp_const_none;
+#endif
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(vfs_posix_mount_obj, vfs_posix_mount);
 
 STATIC mp_obj_t vfs_posix_umount(mp_obj_t self_in) {
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    mp_obj_vfs_posix_t *self = MP_OBJ_TO_PTR(self_in);
+    return mp_native_umount(self->dev, mp_obj_new_str_copy(&mp_type_bytes, (byte*)self->root.buf, self->root_len-1));
+#else
     (void)self_in;
     return mp_const_none;
+#endif
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(vfs_posix_umount_obj, vfs_posix_umount);
 

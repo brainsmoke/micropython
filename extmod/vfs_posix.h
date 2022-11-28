@@ -35,4 +35,9 @@ extern const mp_obj_type_t mp_type_vfs_posix_textio;
 
 mp_obj_t mp_vfs_posix_file_open(const mp_obj_type_t *type, mp_obj_t file_in, mp_obj_t mode_in);
 
+#if MICROPY_VFS_POSIX_NATIVE_MOUNT
+mp_obj_t mp_native_mount(mp_obj_t dev, mp_obj_t mount_point, mp_obj_t readonly, mp_obj_t mkfs);
+mp_obj_t mp_native_umount(mp_obj_t dev, mp_obj_t mount_point);
+#endif
+
 #endif // MICROPY_INCLUDED_EXTMOD_VFS_POSIX_H

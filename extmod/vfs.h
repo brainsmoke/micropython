@@ -103,6 +103,7 @@ mp_obj_t mp_vfs_stat(mp_obj_t path_in);
 mp_obj_t mp_vfs_statvfs(mp_obj_t path_in);
 
 int mp_vfs_mount_and_chdir_protected(mp_obj_t bdev, mp_obj_t mount_point);
+void mp_vfs_umount_all(void);
 
 MP_DECLARE_CONST_FUN_OBJ_KW(mp_vfs_mount_obj);
 MP_DECLARE_CONST_FUN_OBJ_1(mp_vfs_umount_obj);
