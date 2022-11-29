@@ -186,16 +186,16 @@ STATIC mp_obj_t mp_vfs_autodetect(mp_obj_t bdev_obj, mp_obj_t mount_point) {
                 return vfs;
             }
             #endif
-            #if MICROPY_VFS_POSIX_NATIVE_MOUNT
-            {
-                mp_obj_t args[2] = { mount_point, bdev_obj };
-                return mp_type_vfs_posix.make_new(&mp_type_vfs_posix, 2, 0, args);
-            }
-            #endif
         }
         nlr_pop();
     } else {
         // Ignore exception (eg block device doesn't support extended readblocks)
+    }
+    #endif
+    #if MICROPY_VFS_POSIX_NATIVE_MOUNT
+    {
+        mp_obj_t args[2] = { mount_point, bdev_obj };
+        return MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 2, 0, args);
     }
     #endif
 
