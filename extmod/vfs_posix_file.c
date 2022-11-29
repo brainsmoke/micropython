@@ -135,7 +135,7 @@ STATIC mp_uint_t vfs_posix_file_read(mp_obj_t o_in, void *buf, mp_uint_t size, i
 STATIC mp_uint_t vfs_posix_file_write(mp_obj_t o_in, const void *buf, mp_uint_t size, int *errcode) {
     mp_obj_vfs_posix_file_t *o = MP_OBJ_TO_PTR(o_in);
     check_fd_is_open(o);
-    #if MICROPY_PY_OS_DUPTERM
+    #if MICROPY_PY_OS_DUPTERM && !MICROPY_NO_POSIX_STDIO
     if (o->fd <= STDERR_FILENO) {
         mp_hal_stdout_tx_strn(buf, size);
         return size;
@@ -160,6 +160,7 @@ STATIC mp_uint_t vfs_posix_file_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_
         case MP_STREAM_FLUSH: {
             int ret;
             MP_HAL_RETRY_SYSCALL(ret, fsync(o->fd), {
+#if !MICROPY_NO_POSIX_STDIO
                 if (err == EINVAL
                     && (o->fd == STDIN_FILENO || o->fd == STDOUT_FILENO || o->fd == STDERR_FILENO)) {
                     // fsync(stdin/stdout/stderr) may fail with EINVAL, but don't propagate that
@@ -169,6 +170,7 @@ STATIC mp_uint_t vfs_posix_file_ioctl(mp_obj_t o_in, mp_uint_t request, uintptr_
                 }
                 *errcode = err;
                 return MP_STREAM_ERROR;
+#endif
             });
             return 0;
         }
